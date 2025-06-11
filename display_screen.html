@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Streaming Scoreboard & Sponsor Board Display</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Base styles */
+        :root {
+            --team-a-color: #EF4444; /* Tailwind red-500 */
+            --team-b-color: #3B82F6; /* Tailwind blue-500 */
+            --timer-color: #6B7280; /* Tailwind gray-500 */
+            --bg-color: #1F2937; /* Tailwind gray-800 */
+            --text-light: #F9FAFB; /* Tailwind gray-50 */
+
+            /* Sponsor Bar colors (derived from original Sponser Board.html) */
+            --primary: #1e3a8a; /* Original primary */
+            --secondary: #dc2626; /* Original secondary (red-600) */
+            --accent: #f59e0b; /* Original accent (amber-500) */
+            --text: #ffffff; /* Original text */
+            --sponsor-bg: rgba(15, 23, 42, 0.7); /* slate-900 with transparency */
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: transparent; /* OBS uses this for chroma key */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end; /* Align to bottom for sponsor bar */
+            min-height: 100vh; /* Full viewport height */
+            position: relative;
+            z-index: 10; /* Ensure this is above other OBS layers if needed */
+        }
+
+        /* Scoreboard Container */
+        .scoreboard-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top */
+            width: 100%;
+            padding: 20px; /* Padding from edges */
+            box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1; /* Ensure scoreboard is on top of general content */
+        }
+
+        .scoreboard-box {
+            display: flex;
+            background: var(--bg-color);
+            border-radius: 1rem; /* rounded-xl */
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            color: var(--text-light);
+            min-width: 600px; /* Minimum width for the scoreboard */
+            max-width: 900px; /* Max width to prevent it from getting too wide */
+            width: 70%; /* Responsive width */
+            align-items: center; /* Center items vertically */
+            padding: 10px 20px; /* Add padding inside the box */
+            transform: scale(0.9); /* Slightly smaller to fit OBS better by default */
+            transform-origin: top center; /* Scale from top center */
+        }
+
+        .team-section {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            padding: 10px;
+        }
+
+        .team-section.left {
+            justify-content: flex-start;
+        }
+
+        .team-section.right {
+            justify-content: flex-end;
+        }
+
+        .team-logo {
+            width: 70px; /* Adjusted size for logo */
+            height: 70px;
+            object-fit: contain;
+            margin: 0 15px; /* Spacing for logos */
+            border-radius: 50%; /* Make logos round */
+        }
+        
+        .team-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .team-info.right {
+            align-items: flex-end;
+        }
+
+        .team-name {
+            font-size: 1.75rem; /* text-3xl */
+            font-weight: 700; /* bold */
+            color: white;
+            white-space: nowrap; /* Prevent name wrapping */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px; /* Limit name width */
+        }
+
+        .team-score {
+            font-size: 3.5rem; /* text-6xl */
+            font-weight: 900; /* extrabold */
+            margin: 0 20px; /* Space between score and names */
+            line-height: 1; /* Adjust line height */
+        }
+
+        .score-a {
+            color: var(--team-a-color);
+        }
+
+        .score-b {
+            color: var(--team-b-color);
+        }
+
+        .timer-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 20px;
+            border-left: 1px solid rgba(255,255,255,0.1);
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .period-info {
+            font-size: 0.9rem; /* text-sm */
+            font-weight: 600; /* semibold */
+            color: var(--timer-color);
+            margin-bottom: 5px;
+        }
+
+        .timer-display {
+            font-size: 2.5rem; /* text-5xl */
+            font-weight: 900; /* extrabold */
+            color: var(--text-light);
+            line-height: 1;
+        }
+
+        /* Sponsor Bar styles */
+        .sponsor-bar {
+            width: 100%;
+            height: 80px; /* Adjusted height */
+            background: linear-gradient(90deg, var(--sponsor-bg) 0%, rgba(30, 58, 138, 0.7) 50%, var(--sponsor-bg) 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px; /* Horizontal padding */
+            box-sizing: border-box;
+            position: absolute; /* Position at the bottom */
+            bottom: 0;
+            left: 0;
+            z-index: 2; /* Ensure it's above scoreboard if overlapping */
+        }
+
+        .sponsor-logo {
+            height: 60px; /* Adjusted logo size */
+            object-fit: contain;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+        }
+
+        .match-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex-grow: 1;
+            margin: 0 20px; /* Spacing from logos */
+        }
+
+        .teams-text {
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 700; /* bold */
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 600px; /* Limit width to prevent overflow */
+        }
+
+        .score-text {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* semibold */
+            color: var(--accent); /* Using accent color for score */
+        }
+
+        .sponsor-text {
+            font-size: 1rem; /* text-base */
+            color: var(--text);
+            margin-top: 5px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 400px;
+        }
+        
+        /* Media queries for responsiveness */
+        @media (max-width: 1024px) {
+            .scoreboard-box {
+                min-width: unset;
+                width: 95%;
+                padding: 5px 10px;
+                transform: scale(0.85);
+            }
+            .team-name {
+                font-size: 1.5rem;
+                max-width: 120px;
+            }
+            .team-score {
+                font-size: 3rem;
+                margin: 0 10px;
+            }
+            .team-logo {
+                width: 50px;
+                height: 50px;
+                margin: 0 10px;
+            }
+            .timer-display {
+                font-size: 2rem;
+            }
+            .period-info {
+                font-size: 0.8rem;
+            }
+            .sponsor-bar {
+                height: 70px;
+                padding: 0 15px;
+            }
+            .sponsor-logo {
+                height: 50px;
+            }
+            .teams-text {
+                font-size: 1.25rem;
+                max-width: 400px;
+            }
+            .score-text {
+                font-size: 1rem;
+            }
+            .sponsor-text {
+                font-size: 0.875rem;
+                max-width: 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .scoreboard-box {
+                flex-direction: column; /* Stack elements vertically */
+                width: 98%;
+                max-width: 500px;
+                padding: 10px;
+                transform: scale(1); /* No scaling on very small screens */
+                margin-top: 10px; /* Adjust top margin for stacked layout */
+            }
+            .team-section {
+                width: 100%;
+                justify-content: center;
+                padding: 5px;
+            }
+            .team-info {
+                align-items: center;
+            }
+            .team-name {
+                max-width: unset; /* Allow full width */
+                font-size: 1.25rem;
+            }
+            .team-score {
+                font-size: 2.5rem;
+            }
+            .timer-section {
+                border-left: none;
+                border-right: none;
+                border-top: 1px solid rgba(255,255,255,0.1); /* Add top border for separation */
+                width: 100%;
+                padding-top: 10px;
+                margin-top: 10px;
+            }
+            .sponsor-bar {
+                flex-direction: column;
+                height: auto; /* Auto height for stacked content */
+                padding: 10px 15px;
+                text-align: center;
+            }
+            .sponsor-logo {
+                margin-bottom: 10px; /* Space between stacked logos */
+            }
+            .match-info {
+                margin: 10px 0;
+            }
+            .teams-text {
+                font-size: 1.1rem;
+                max-width: unset;
+            }
+            .score-text {
+                font-size: 0.9rem;
+            }
+            .sponsor-text {
+                font-size: 0.8rem;
+                max-width: unset;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="scoreboard-container">
+    <div class="scoreboard-box">
+        <div class="team-section left">
+            <img id="team-a-logo" class="team-logo" src="https://placehold.co/70x70/EF4444/ffffff?text=LOGO+A" alt="Team A Logo">
+            <div class="team-info">
+                <span id="team-a-name" class="team-name">Team A</span>
+                <span id="team-a-score" class="team-score score-a">0</span>
+            </div>
+        </div>
+
+        <div class="timer-section">
+            <span id="period-info" class="period-info">PERIOD 1</span>
+            <span id="timer-display" class="timer-display">00:00</span>
+        </div>
+        
+        <div class="team-section right">
+            <div class="team-info right">
+                <span id="team-b-name" class="team-name">Team B</span>
+                <span id="team-b-score" class="team-score score-b">0</span>
+            </div>
+            <img id="team-b-logo" class="team-logo" src="https://placehold.co/70x70/3B82F6/ffffff?text=LOGO+B" alt="Team B Logo">
+        </div>
+    </div>
+</div>
+
+<div class="sponsor-bar">
+    <img id="sponsor-logo-left" class="sponsor-logo" src="https://placehold.co/150x50/1e3a8a/ffffff?text=SPONSOR" alt="Sponsor Logo">
+    <div class="match-info">
+        <span id="teams-display" class="teams-text">SUN SHIYAAM DH MEEDHOO COUNCIL FOOTBALL TOURNAMENT</span>
+        <span id="score-display" class="score-text">2 - 1</span>
+        <span id="sponsor-text-display" class="sponsor-text">OFFICIAL BROADCAST PARTNER</span>
+    </div>
+    <img id="sponsor-logo-right" class="sponsor-logo" src="https://placehold.co/150x50/dc2626/ffffff?text=BROADCASTER" alt="Broadcaster Logo">
+</div>
+
+<script>
+    // WebSocket connection
+    const ws = new WebSocket("wss://ntv-scoreboard-project.onrender.com");
+
+    ws.onopen = () => {
+        console.log('Connected to WebSocket server');
+        // Request initial state from the controls.html if it's open
+        ws.send(JSON.stringify({ type: 'requestInitialState' }));
+    };
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'scoreboardUpdate') {
+            updateScoreboardDisplay(data);
+        } else if (data.type === 'sponsorUpdate') {
+            updateSponsorBarDisplay(data);
+        } else if (data.type === 'initialState') {
+            // Apply both scoreboard and sponsor bar data if received as initial state
+            updateScoreboardDisplay(data.scoreboardData || {});
+            updateSponsorBarDisplay(data.sponsorBarData || {});
+        }
+    };
+
+    ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = () => {
+        console.log('Disconnected from WebSocket server');
+    };
+
+    // DOM elements for scoreboard
+    const teamAName = document.getElementById('team-a-name');
+    const teamAScore = document.getElementById('team-a-score');
+    const teamALogo = document.getElementById('team-a-logo');
+    const teamBName = document.getElementById('team-b-name');
+    const teamBScore = document.getElementById('team-b-score');
+    const teamBLogo = document.getElementById('team-b-logo');
+    const timerDisplay = document.getElementById('timer-display');
+    const periodInfo = document.getElementById('period-info');
+
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateScoreboardDisplay(data) {
+        teamAName.textContent = data.nameA || 'Team A';
+        teamAScore.textContent = data.scoreA !== undefined ? data.scoreA : 0;
+        teamBName.textContent = data.nameB || 'Team B';
+        teamBScore.textContent = data.scoreB !== undefined ? data.scoreB : 0;
+        timerDisplay.textContent = formatTime(data.timeRemaining !== undefined ? data.timeRemaining : 0);
+        periodInfo.textContent = `${(data.periodType || 'PERIOD').toUpperCase()} ${data.currentPeriod !== undefined ? data.currentPeriod : 1}`;
+
+        if (data.logoA) {
+            teamALogo.src = data.logoA;
+        } else {
+            teamALogo.src = "https://placehold.co/70x70/EF4444/ffffff?text=LOGO+A";
+        }
+        if (data.logoB) {
+            teamBLogo.src = data.logoB;
+        } else {
+            teamBLogo.src = "https://placehold.co/70x70/3B82F6/ffffff?text=LOGO+B";
+        }
+    }
+
+    // DOM elements for sponsor bar
+    const sponsorLogoLeft = document.getElementById('sponsor-logo-left');
+    const sponsorLogoRight = document.getElementById('sponsor-logo-right');
+    const teamsDisplay = document.getElementById('teams-display');
+    const scoreDisplay = document.getElementById('score-display');
+    const sponsorTextDisplay = document.getElementById('sponsor-text-display');
+    const sponsorBar = document.querySelector('.sponsor-bar');
+
+    function updateSponsorBarDisplay(data) {
+        teamsDisplay.textContent = data.sponsorTeams || "SUN SHIYAAM DH MEEDHOO COUNCIL FOOTBALL TOURNAMENT";
+        scoreDisplay.textContent = data.sponsorScore || "2 - 1";
+        sponsorTextDisplay.textContent = data.sponsorText || "OFFICIAL BROADCAST PARTNER";
+        
+        sponsorLogoLeft.src = data.leftSponsorLogo || "https://placehold.co/150x50/1e3a8a/ffffff?text=SPONSOR";
+        sponsorLogoRight.src = data.rightBroadcasterLogo || "https://placehold.co/150x50/dc2626/ffffff?text=BROADCASTER";
+        
+        if (data.transparency !== undefined) {
+            const transparency = data.transparency;
+            const alpha = (100 - transparency) / 100; // Invert transparency for CSS alpha
+            // Update CSS variable for background
+            document.documentElement.style.setProperty('--sponsor-bg', `rgba(15, 23, 42, ${alpha})`);
+            // Update background of sponsor bar directly to ensure gradient transparency
+            sponsorBar.style.background = `linear-gradient(90deg, rgba(15, 23, 42, ${alpha}) 0%, rgba(30, 58, 138, ${alpha * 0.7}) 50%, rgba(15, 23, 42, ${alpha}) 100%)`;
+        }
+    }
+
+    // Initial load will happen via WebSocket `initialState` message from controls.html
+</script>
+
+</body>
+</html>
