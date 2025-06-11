@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard & Sponsor Board Controls</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Base styles */
+        :root {
+            --team-a-color: #EF4444; /* Tailwind red-500 */
+            --team-b-color: #3B82F6; /* Tailwind blue-500 */
+            --timer-color: #6B7280; /* Tailwind gray-500 */
+            --bg-color: #1F2937; /* Tailwind gray-800 */
+            --text-light: #F9FAFB; /* Tailwind gray-50 */
+
+            /* Sponsor Bar colors (derived from original Sponser Board.html) */
+            --primary: #1e3a8a; /* Original primary */
+            --secondary: #dc2626; /* Original secondary (red-600) */
+            --accent: #f59e0b; /* Original accent (amber-500) */
+            --text: #ffffff; /* Original text */
+        }
+
+        body {
+            margin: 0;
+            background-color: #000; /* Black background */
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Align to top */
+            min-height: 100vh;
+            color: var(--text-light);
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            padding-top: 20px; /* Add some padding at the top */
+        }
+
+        /* Controls Panel */
+        .controls-wrapper {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            justify-content: center; /* Center the panels */
+            gap: 2rem; /* Space between panels */
+            width: 90%;
+            max-width: 1800px; /* Max width for the wrapper to contain both */
+            margin-top: 2rem;
+            align-items: flex-start; /* Align items to the start of the cross axis */
+        }
+
+        .controls-container {
+            background: var(--bg-color);
+            border-radius: 1.25rem; /* rounded-2xl */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 100%; /* Full width within wrapper on small screens */
+            max-width: 900px; /* Max width for individual controls */
+            padding: 1.5rem; /* p-6 */
+            flex-grow: 1; /* Allow panels to grow and take available space */
+            flex-basis: 0; /* Important for flex-grow to work as expected */
+            min-width: 400px; /* Minimum width for each panel before wrapping */
+        }
+        
+        .teams-controls {
+            display: flex;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            justify-content: space-between;
+            margin-bottom: 1.25rem; /* mb-5 */
+        }
+        
+        .team-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%; /* Full width on small screens */
+            padding: 1rem; /* p-4 */
+            border-radius: 0.625rem; /* rounded-xl */
+            background: rgba(0,0,0,0.1);
+            margin-bottom: 1rem; /* Add margin for wrapped items */
+        }
+
+        @media (min-width: 768px) { /* md breakpoint */
+            .team-controls {
+                width: 48%; /* Adjust width for two columns */
+                margin-bottom: 0;
+            }
+        }
+        
+        .team-a-controls {
+            border-bottom: 0.1875rem solid var(--team-a-color); /* 3px */
+        }
+        
+        .team-b-controls {
+            border-bottom: 0.1875rem solid var(--team-b-color); /* 3px */
+        }
+        
+        .timer-controls {
+            border-bottom: 0.1875rem solid var(--timer-color); /* 3px */
+            padding: 1rem; /* p-4 */
+            border-radius: 0.625rem; /* rounded-xl */
+            background: rgba(0,0,0,0.1);
+            margin-bottom: 0.9375rem; /* mb-3 */
+            width: 100%;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 0.625rem; /* 10px */
+            margin: 0.3125rem 0; /* 5px */
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        input[type="text"], input[type="number"] {
+            padding: 0.5rem 0.75rem; /* p-2 px-3 */
+            border-radius: 0.375rem; /* rounded-md */
+            border: none;
+            background: rgba(255,255,255,0.9);
+            font-size: 1rem; /* 16px */
+            color: #333;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .file-upload {
+            padding: 0.5rem 0.9375rem; /* p-2 px-3 */
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 0.375rem; /* rounded-md */
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 0.875rem; /* 14px */
+        }
+        
+        .file-upload:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        button {
+            padding: 0.625rem 1.25rem; /* p-2.5 px-5 */
+            border: none;
+            border-radius: 0.375rem; /* rounded-md */
+            font-weight: 600; /* semibold */
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem; /* 16px */
+        }
+        
+        .score-btn {
+            background: white;
+            color: var(--bg-color);
+            min-width: 3.125rem; /* 50px */
+        }
+        
+        .score-btn:hover {
+            transform: translateY(-0.125rem); /* -2px */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .team-a-btn {
+            background: var(--team-a-color);
+            color: white;
+        }
+        
+        .team-b-btn {
+            background: var(--team-b-color);
+            color: white;
+        }
+        
+        .timer-btn {
+            background: var(--timer-color);
+            color: white;
+        }
+        
+        .reset-btn {
+            background: #E74C3C; /* Red */
+            color: white;
+            margin-top: 0.9375rem; /* mt-3 */
+        }
+        
+        button:hover {
+            filter: brightness(1.1);
+            transform: translateY(-0.125rem); /* -2px */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        select {
+            padding: 0.5rem 0.75rem; /* p-2 px-3 */
+            border-radius: 0.375rem; /* rounded-md */
+            border: none;
+            background: rgba(255,255,255,0.9);
+            font-size: 1rem; /* 16px */
+            color: #333;
+        }
+
+        /* Settings Panel Styles for Sponsor Bar controls */
+        .settings-panel {
+            padding: 1.25rem; /* p-5 */
+            background: var(--bg-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 0.5rem; /* rounded-lg */
+            width: 100%; /* Full width within wrapper on small screens */
+            max-width: 900px; /* Max width for individual controls */
+        }
+        
+        .settings-section {
+            margin-bottom: 1.25rem; /* mb-5 */
+        }
+        
+        .settings-section h3 {
+            color: var(--text-light);
+            border-bottom: 0.125rem solid var(--accent); /* 2px */
+            padding-bottom: 0.3125rem; /* 5px */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        
+        .form-group {
+            margin-bottom: 0.9375rem; /* mb-3 */
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.3125rem; /* 5px */
+            font-weight: 600; /* semibold */
+            color: var(--text-light);
+        }
+        
+        .form-group input[type="text"],
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 0.5rem; /* p-2 */
+            border: 0.0625rem solid #ddd; /* 1px */
+            border-radius: 0.25rem; /* rounded */
+            background: rgba(255,255,255,0.9);
+            color: #333;
+        }
+        
+        .form-group button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 0.9375rem; /* p-2 px-3 */
+            border-radius: 0.25rem; /* rounded */
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .form-group button:hover {
+            background: var(--secondary);
+        }
+        
+        /* Transparency control slider */
+        .transparency-control {
+            margin-top: 0.9375rem; /* mt-3 */
+        }
+        
+        .transparency-control label {
+            display: block;
+            margin-bottom: 0.3125rem; /* 5px */
+            color: var(--text-light);
+        }
+        
+        .transparency-control input[type="range"] {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="controls-wrapper">
+    <div class="controls-container">
+        <h2 class="text-2xl font-bold text-center mb-4 text-white">Scoreboard Controls</h2>
+        <div class="teams-controls">
+            <div class="team-controls team-a-controls">
+                <input type="text" id="inputA" placeholder="Team A Name" oninput="updateTeamNames()">
+                <div class="control-group">
+                    <label for="fileA" class="file-upload">Upload Logo</label>
+                    <input type="file" id="fileA" accept="image/*" onchange="loadLogo(event, 'A')">
+                </div>
+                <div class="control-group">
+                    <button class="score-btn team-a-btn" onclick="addScore('A', 1)">+1</button>
+                    <button class="score-btn team-a-btn" onclick="addScore('A', 2)">+2</button>
+                    <button class="score-btn team-a-btn" onclick="addScore('A', 3)">+3</button>
+                    <button class="score-btn" onclick="subtractScore('A')">-1</button>
+                </div>
+            </div>
+            
+            <div class="team-controls team-b-controls">
+                <input type="text" id="inputB" placeholder="Team B Name" oninput="updateTeamNames()">
+                <div class="control-group">
+                    <label for="fileB" class="file-upload">Upload Logo</label>
+                    <input type="file" id="fileB" accept="image/*" onchange="loadLogo(event, 'B')">
+                </div>
+                <div class="control-group">
+                    <button class="score-btn team-b-btn" onclick="addScore('B', 1)">+1</button>
+                    <button class="score-btn team-b-btn" onclick="addScore('B', 2)">+2</button>
+                    <button class="score-btn team-b-btn" onclick="addScore('B', 3)">+3</button>
+                    <button class="score-btn" onclick="subtractScore('B')">-1</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="timer-controls">
+            <h3 class="text-xl font-semibold mb-2 text-white">Game Info & Timer</h3>
+            <div class="control-group">
+                <input type="number" id="periodDuration" value="12" min="1" max="60" class="w-24">
+                <select id="periodType" onchange="updatePeriodType()" class="w-36">
+                    <option value="quarter">Quarters</option>
+                    <option value="half">Halves</option>
+                    <option value="period">Periods</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <button class="timer-btn" onclick="startTimer()">Start</button>
+                <button class="timer-btn" onclick="pauseTimer()">Pause</button>
+                <button class="timer-btn" onclick="resetTimer()">Reset</button>
+                <button class="timer-btn" onclick="nextPeriod()">Next Period</button>
+            </div>
+            <div class="control-group">
+                <button class="reset-btn" onclick="resetAll()">Reset All Scoreboard</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-panel controls-container">
+        <h2 class="text-2xl font-bold text-center mb-4 text-white">Sponsor Bar Controls</h2>
+        
+        <div class="settings-section">
+            <h3>Transparency Control</h3>
+            <div class="transparency-control">
+                <label for="transparency-slider">Bar Transparency: <span id="transparency-value">30%</span></label>
+                <input type="range" id="transparency-slider" min="0" max="100" value="30">
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h3>Sponsor Logos</h3>
+            <div class="form-group">
+                <label for="left-logo-upload">Left Sponsor Logo</label>
+                <input type="file" id="left-logo-upload" accept="image/*">
+            </div>
+            <div class="form-group">
+                <label for="right-logo-upload">Right Broadcaster Logo</label>
+                <input type="file" id="right-logo-upload" accept="image/*">
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h3>Match Information</h3>
+            <div class="form-group">
+                <label for="teams-input">Teams (format: TOURNAMENT NAME)</label>
+                <input type="text" id="teams-input" value="SUN SHIYAAM DH MEEDHOO COUNCIL FOOTBALL TOURNAMENT">
+            </div>
+            <div class="form-group">
+                <label for="score-input">Score (format: HOME - AWAY)</label>
+                <input type="text" id="score-input" value="2 - 1">
+            </div>
+            <button id="update-match-info" class="w-full">Update Match Info</button>
+        </div>
+        
+        <div class="settings-section">
+            <h3>Sponsor Text</h3>
+            <div class="form-group">
+                <label for="sponsor-text-input">Sponsor Text</label>
+                <input type="text" id="sponsor-text-input" value="OFFICIAL BROADCAST PARTNER">
+            </div>
+            <button id="update-sponsor-text" class="w-full">Update Sponsor Text</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Scoreboard Controls Logic (Sends to localStorage) ---
+    let scoreA = 0;
+    let scoreB = 0;
+    let timerInterval;
+    let timeRemaining = 12 * 60; // Default: 12 minutes in seconds
+    let isTimerRunning = false;
+    let currentPeriod = 1;
+    let maxPeriods = 4;
+    let periodType = 'quarter';
+    
+    // DOM elements for scoreboard controls
+    const periodDurationInput = document.getElementById('periodDuration');
+    const periodTypeSelect = document.getElementById('periodType');
+    const inputA = document.getElementById('inputA');
+    const inputB = document.getElementById('inputB');
+    const fileA = document.getElementById('fileA');
+    const fileB = document.getElementById('fileB');
+
+    function saveScoreboardData() {
+        const scoreboardData = {
+            scoreA: scoreA,
+            scoreB: scoreB,
+            nameA: inputA.value || 'TEAM A',
+            nameB: inputB.value || 'TEAM B',
+            logoA: document.getElementById('logoA')?.style.backgroundImage.replace(/url\(['"]?(.*?)['"]?\)/, '$1') || '',
+            logoB: document.getElementById('logoB')?.style.backgroundImage.replace(/url\(['"]?(.*?)['"]?\)/, '$1') || '',
+            timeRemaining: timeRemaining,
+            periodText: getPeriodText()
+        };
+        localStorage.setItem('scoreboardData', JSON.stringify(scoreboardData));
+    }
+
+    function updateTeamNames() {
+        saveScoreboardData();
+    }
+    
+    function addScore(team, points = 1) {
+        if (team === 'A') {
+            scoreA += points;
+        } else {
+            scoreB += points;
+        }
+        saveScoreboardData();
+    }
+    
+    function subtractScore(team) {
+        if (team === 'A' && scoreA > 0) {
+            scoreA--;
+        } else if (team === 'B' && scoreB > 0) {
+            scoreB--;
+        }
+        saveScoreboardData();
+    }
+    
+    function loadLogo(event, team) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Temporarily create an image element to get the base64 string
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 200; // Max width for image to avoid large base64 strings
+                    const MAX_HEIGHT = 200; // Max height
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const dataURL = canvas.toDataURL('image/png'); // Convert to PNG for consistent transparency
+
+                    // Store the base64 string directly in localStorage
+                    let scoreboardData = JSON.parse(localStorage.getItem('scoreboardData')) || {};
+                    if (team === 'A') {
+                        scoreboardData.logoA = dataURL;
+                    } else {
+                        scoreboardData.logoB = dataURL;
+                    }
+                    localStorage.setItem('scoreboardData', JSON.stringify(scoreboardData));
+                    // Trigger storage event manually for same-page updates (optional, but good for dev)
+                    window.dispatchEvent(new CustomEvent('storage', { detail: { key: 'scoreboardData', newValue: JSON.stringify(scoreboardData) } }));
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function startTimer() {
+        if (!isTimerRunning && timeRemaining > 0) {
+            timerInterval = setInterval(() => {
+                if (timeRemaining > 0) {
+                    timeRemaining--;
+                    saveScoreboardData(); // Save every second
+                } else {
+                    pauseTimer();
+                    if (currentPeriod < maxPeriods) {
+                        setTimeout(nextPeriod, 1000);
+                    }
+                }
+            }, 1000);
+            isTimerRunning = true;
+        }
+    }
+    
+    function pauseTimer() {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        saveScoreboardData();
+    }
+    
+    function resetTimer() {
+        pauseTimer();
+        const periodMinutes = parseInt(periodDurationInput.value) || 12;
+        timeRemaining = periodMinutes * 60;
+        saveScoreboardData();
+    }
+    
+    function nextPeriod() {
+        if (currentPeriod < maxPeriods) {
+            currentPeriod++;
+            resetTimer();
+            saveScoreboardData();
+        } else {
+            // Optional: Message when all periods are finished
+            // alert('All periods have finished!');
+        }
+    }
+    
+    function updatePeriodType() {
+        periodType = periodTypeSelect.value;
+        switch (periodType) {
+            case 'quarter':
+                maxPeriods = 4;
+                break;
+            case 'half':
+                maxPeriods = 2;
+                break;
+            case 'period':
+                maxPeriods = 3;
+                break;
+            default:
+                maxPeriods = 4; // Default to quarters
+        }
+        currentPeriod = 1;
+        resetTimer();
+        saveScoreboardData();
+    }
+    
+    function getPeriodText() {
+        let periodText = '';
+        const getOrdinal = (n) => {
+            const s = ['th', 'st', 'nd', 'rd'];
+            const v = n % 100;
+            return n + (s[(v - 20) % 10] || s[v] || s[0]);
+        };
+
+        switch (periodType) {
+            case 'quarter':
+                periodText = `${getOrdinal(currentPeriod)} Quarter`;
+                break;
+            case 'half':
+                periodText = `${getOrdinal(currentPeriod)} Half`;
+                break;
+            case 'period':
+                periodText = `${getOrdinal(currentPeriod)} Period`;
+                break;
+        }
+        return periodText;
+    }
+    
+    // Reset all for scoreboard and sponsor bar
+    function resetAll() {
+        pauseTimer();
+        scoreA = 0;
+        scoreB = 0;
+        currentPeriod = 1;
+        resetTimer();
+
+        inputA.value = '';
+        inputB.value = '';
+        fileA.value = ''; // Clear file input
+        fileB.value = ''; // Clear file input
+
+        // Reset sponsor bar inputs to defaults
+        document.getElementById('teams-input').value = "SUN SHIYAAM DH MEEDHOO COUNCIL FOOTBALL TOURNAMENT";
+        document.getElementById('score-input').value = "2 - 1";
+        document.getElementById('sponsor-text-input').value = "OFFICIAL BROADCAST PARTNER";
+        document.getElementById('left-logo-upload').value = ''; // Clear file input
+        document.getElementById('right-logo-upload').value = ''; // Clear file input
+        
+        // Clear localStorage for a full reset
+        localStorage.removeItem('scoreboardData');
+        localStorage.removeItem('sponsorBarData');
+
+        // Initial save to set default state in localStorage
+        saveScoreboardData();
+        saveSponsorBarData();
+
+        // Trigger storage event manually for same-page updates (optional)
+        window.dispatchEvent(new CustomEvent('storage', { detail: { key: 'scoreboardData', newValue: localStorage.getItem('scoreboardData') } }));
+        window.dispatchEvent(new CustomEvent('storage', { detail: { key: 'sponsorBarData', newValue: localStorage.getItem('sponsorBarData') } }));
+    }
+
+    // --- Sponsor Bar Controls Logic (Sends to localStorage) ---
+    // DOM elements for sponsor bar controls
+    const transparencySlider = document.getElementById('transparency-slider');
+    const transparencyValue = document.getElementById('transparency-value');
+    const teamsInput = document.getElementById('teams-input');
+    const scoreInput = document.getElementById('score-input');
+    const sponsorTextInput = document.getElementById('sponsor-text-input');
+    const leftLogoUpload = document.getElementById('left-logo-upload');
+    const rightLogoUpload = document.getElementById('right-logo-upload');
+
+    function saveSponsorBarData() {
+        const sponsorBarData = {
+            transparency: transparencySlider.value,
+            leftSponsorLogo: document.getElementById('sponsor-logo-left')?.src || "https://placehold.co/150x50/1e3a8a/ffffff?text=SPONSOR+LOGO",
+            rightBroadcasterLogo: document.getElementById('sponsor-logo-right')?.src || "https://placehold.co/150x50/dc2626/ffffff?text=BROADCASTER",
+            sponsorTeams: teamsInput.value,
+            sponsorScore: scoreInput.value,
+            sponsorText: sponsorTextInput.value
+        };
+        localStorage.setItem('sponsorBarData', JSON.stringify(sponsorBarData));
+    }
+
+    // Handle logo uploads for sponsor bar
+    leftLogoUpload.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                let sponsorBarData = JSON.parse(localStorage.getItem('sponsorBarData')) || {};
+                sponsorBarData.leftSponsorLogo = event.target.result;
+                localStorage.setItem('sponsorBarData', JSON.stringify(sponsorBarData));
+                window.dispatchEvent(new CustomEvent('storage', { detail: { key: 'sponsorBarData', newValue: JSON.stringify(sponsorBarData) } }));
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    rightLogoUpload.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                let sponsorBarData = JSON.parse(localStorage.getItem('sponsorBarData')) || {};
+                sponsorBarData.rightBroadcasterLogo = event.target.result;
+                localStorage.setItem('sponsorBarData', JSON.stringify(sponsorBarData));
+                window.dispatchEvent(new CustomEvent('storage', { detail: { key: 'sponsorBarData', newValue: JSON.stringify(sponsorBarData) } }));
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Update match info for sponsor bar
+    document.getElementById('update-match-info').addEventListener('click', saveSponsorBarData);
+    teamsInput.addEventListener('input', saveSponsorBarData);
+    scoreInput.addEventListener('input', saveSponsorBarData);
+    
+    // Update sponsor text for sponsor bar
+    document.getElementById('update-sponsor-text').addEventListener('click', saveSponsorBarData);
+    sponsorTextInput.addEventListener('input', saveSponsorBarData);
+    
+    // Transparency control for sponsor bar
+    transparencySlider.addEventListener('input', () => {
+        transparencyValue.textContent = `${transparencySlider.value}%`;
+        saveSponsorBarData();
+    });
+
+    // Load initial state into controls from localStorage
+    function loadInitialControlsState() {
+        const scoreboardData = JSON.parse(localStorage.getItem('scoreboardData')) || {};
+        scoreA = scoreboardData.scoreA !== undefined ? scoreboardData.scoreA : 0;
+        scoreB = scoreboardData.scoreB !== undefined ? scoreboardData.scoreB : 0;
+        inputA.value = scoreboardData.nameA || '';
+        inputB.value = scoreboardData.nameB || '';
+        timeRemaining = scoreboardData.timeRemaining !== undefined ? scoreboardData.timeRemaining : (parseInt(periodDurationInput.value) || 12) * 60;
+        currentPeriod = scoreboardData.currentPeriod !== undefined ? scoreboardData.currentPeriod : 1;
+        periodType = scoreboardData.periodType || 'quarter';
+        periodTypeSelect.value = periodType;
+        
+        const sponsorBarData = JSON.parse(localStorage.getItem('sponsorBarData')) || {};
+        transparencySlider.value = sponsorBarData.transparency !== undefined ? sponsorBarData.transparency : 30;
+        transparencyValue.textContent = `${transparencySlider.value}%`;
+        teamsInput.value = sponsorBarData.sponsorTeams || "SUN SHIYAAM DH MEEDHOO COUNCIL FOOTBALL TOURNAMENT";
+        scoreInput.value = sponsorBarData.sponsorScore || "2 - 1";
+        sponsorTextInput.value = sponsorBarData.sponsorText || "OFFICIAL BROADCAST PARTNER";
+    }
+
+    // Initialize state on page load
+    loadInitialControlsState();
+    saveScoreboardData(); // Ensure initial data is in localStorage
+    saveSponsorBarData(); // Ensure initial data is in localStorage
+
+</script>
+
+</body>
+</html>
